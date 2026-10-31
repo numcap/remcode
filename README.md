@@ -222,6 +222,8 @@ If you've turned off the extension's access to LeetCode or NeetCode, the popup a
 - Problem statements are sanitized with DOMPurify before they're shown.
 - Your deck is stored in `browser.storage.local`, one key per card. **Export JSON** gives you a portable backup at any time.
 
+The full [privacy policy](PRIVACY.md) has the details.
+
 ---
 
 ## Sync with GitHub
