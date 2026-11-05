@@ -4,6 +4,9 @@
 //
 //   npm run build && node scripts/screenshots.mjs
 //
+// With --store it writes the Chrome Web Store / AMO listing shots to docs/store/ instead:
+// the five screens in STORE_SHOTS, each exactly 1280x800 (rendered at 2x, saved at 1x).
+//
 // Needs Playwright's Chromium once: npx playwright install chromium
 import { chromium } from 'playwright';
 import { mkdirSync, mkdtempSync } from 'node:fs';
@@ -13,12 +16,15 @@ import { fileURLToPath } from 'node:url';
 import { createEmptyCard, fsrs, generatorParameters } from 'ts-fsrs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const OUT = path.join(ROOT, 'docs', 'screenshots');
+const STORE = process.argv.includes('--store');
+const STORE_SHOTS = ['capture-modal', 'review-front', 'review-answer-dark', 'library', 'card-detail'];
+const OUT = path.join(ROOT, 'docs', STORE ? 'store' : 'screenshots');
 const EXT = path.join(ROOT, '.output/chrome-mv3');
 mkdirSync(OUT, { recursive: true });
 
 const DAY = 86_400_000;
 const NOW = Date.now();
+const HEIGHT = STORE ? 800 : 820;
 
 // ---------- Sample deck ----------
 
@@ -344,14 +350,19 @@ const seeded = deck.filter((c) => c.id !== 'leetcode:two-sum');
 const ctx = await chromium.launchPersistentContext(mkdtempSync(path.join(tmpdir(), 'remcode-shots-')), {
   channel: 'chromium',
   headless: true,
-  viewport: { width: 1280, height: 820 },
+  viewport: { width: 1280, height: HEIGHT },
   deviceScaleFactor: 2,
   args: [`--disable-extensions-except=${EXT}`, `--load-extension=${EXT}`],
 });
 let [sw] = ctx.serviceWorkers();
 if (!sw) sw = await ctx.waitForEvent('serviceworker');
 const extUrl = (p) => `chrome-extension://${new URL(sw.url()).host}/${p}`;
-const shot = (page, name, opts = {}) => page.screenshot({ path: path.join(OUT, `${name}.png`), ...opts });
+const shot = (page, name, opts = {}) => {
+  if (!STORE) return page.screenshot({ path: path.join(OUT, `${name}.png`), ...opts });
+  // Store shots are the plain viewport, numbered in listing order; the rest are skipped.
+  const i = STORE_SHOTS.indexOf(name);
+  if (i >= 0) return page.screenshot({ path: path.join(OUT, `${i + 1}-${name}.png`), scale: 'css' });
+};
 const settle = (page) => page.waitForTimeout(400);
 
 // Seed the deck through an extension page.
@@ -407,7 +418,7 @@ const MOCK_LEETCODE = `<!doctype html><html><head><meta charset="utf-8"><title>T
   await page.goto('https://leetcode.com/problems/two-sum/description/');
   await page.locator('.mc-fab').waitFor({ timeout: 15000 });
   await settle(page);
-  await shot(page, 'fab', { clip: { x: 0, y: 820 - 90, width: 300, height: 90 } });
+  await shot(page, 'fab', { clip: { x: 0, y: HEIGHT - 90, width: 300, height: 90 } });
 
   await page.evaluate(async (code) => {
     await fetch('/problems/two-sum/submit/', { method: 'POST', body: JSON.stringify({ lang: 'python3', typed_code: code }) });
@@ -424,7 +435,7 @@ const MOCK_LEETCODE = `<!doctype html><html><head><meta charset="utf-8"><title>T
   await page.keyboard.press('3');
   await page.locator('.mc-toast').waitFor();
   await settle(page);
-  await shot(page, 'capture-toast', { clip: { x: 0, y: 820 - 160, width: 640, height: 160 } });
+  await shot(page, 'capture-toast', { clip: { x: 0, y: HEIGHT - 160, width: 640, height: 160 } });
   await page.close();
 }
 
