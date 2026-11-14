@@ -5,10 +5,19 @@ import { SiteAccessBanner } from '@/components/SiteAccessBanner';
 import { buildQueue } from '@/lib/storage';
 import { AddProblem } from './AddProblem';
 import { CardDetail } from './CardDetail';
-import { useCards, useNow, useRoute, useSettings } from './hooks';
+import { type Route, useCards, useNow, useRoute, useSettings } from './hooks';
 import { Library } from './Library';
 import { Review } from './Review';
 import { SettingsPage } from './SettingsPage';
+
+/** Tab titles, so open dashboard tabs are told apart by page rather than all reading "ReMCode". */
+const PAGE_TITLES: Record<Route['name'], string> = {
+  review: 'Review',
+  library: 'Library',
+  card: 'Problem',
+  settings: 'Settings',
+  add: 'Add a problem',
+};
 
 export function App() {
   const route = useRoute();
@@ -17,9 +26,14 @@ export function App() {
   const now = useNow();
   const dueCount = cards && settings ? buildQueue(cards, settings, now).length : 0;
 
+  const cardTitle =
+    route.name === 'card' && route.param ? cards?.find((c) => c.id === route.param)?.title : undefined;
+  const pageTitle = cardTitle ?? PAGE_TITLES[route.name];
+
   useEffect(() => {
-    document.title = dueCount ? `(${dueCount}) ReMCode` : 'ReMCode';
-  }, [dueCount]);
+    const base = `${pageTitle} · ReMCode`;
+    document.title = dueCount ? `(${dueCount}) ${base}` : base;
+  }, [dueCount, pageTitle]);
 
   // Pull what other browsers did before you start reviewing. No-op if sync isn't set up.
   useEffect(() => {
