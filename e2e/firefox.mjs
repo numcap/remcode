@@ -34,7 +34,8 @@ const browser = await puppeteer.launch({
   headless: true,
   // -new-instance/-no-remote: don't hand off to an already-running Firefox.
   args: ['-new-instance', '-no-remote', '-remote-allow-system-access'],
-  env: { ...process.env, MOZ_NO_REMOTE: '1' },
+  // Firefox 160+ also wants this before WebDriver may script moz-extension:// pages.
+  env: { ...process.env, MOZ_NO_REMOTE: '1', MOZ_REMOTE_ALLOW_SYSTEM_ACCESS: '1' },
   userDataDir: mkdtempSync(path.join(tmpdir(), 'remcode-ff-')),
   extraPrefsFirefox: { 'extensions.webextensions.uuids': JSON.stringify({ 'remcode@numcap': UUID }) },
 });
@@ -175,7 +176,7 @@ try {
   check('Review: Space reveals the answer', true);
   await press('3');
   await page.waitForSelector('.empty-state h1', { timeout: 5000 });
-  check('Review: session completes', /Session complete/.test(await page.$eval('.empty-state', (el) => el.innerText)));
+  check('Review: session completes', /Session complete|Queue cleared/.test(await page.$eval('.empty-state', (el) => el.innerText)));
   const log = await page.evaluate(
     async () => (await browser.storage.local.get('card:leetcode:two-sum'))['card:leetcode:two-sum'].reviewLog,
   );

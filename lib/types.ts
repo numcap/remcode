@@ -50,6 +50,8 @@ export interface ReviewEntry {
   kind: 'solve' | 'review';
   /** What you wrote in the review scratch pad before revealing the answer. */
   recall?: string;
+  /** When the card became due again after this rating. Missing on entries logged before streaks existed. */
+  due?: number;
 }
 
 export interface Card extends Problem {

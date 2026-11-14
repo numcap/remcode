@@ -1,6 +1,7 @@
 import { browser } from 'wxt/browser';
 import { defineBackground } from 'wxt/utils/define-background';
-import { getReviewQueue, isDeckChange } from '@/lib/storage';
+import { buildQueue, getAllCards, getSettings, isDeckChange } from '@/lib/storage';
+import { computeStreak, isStreakAtRisk } from '@/lib/streak';
 import { syncNow } from '@/lib/sync';
 
 const BADGE_ALARM = 'remcode-badge';
@@ -9,9 +10,15 @@ const SYNC_SOON_ALARM = 'remcode-sync-soon';
 
 export default defineBackground(() => {
   const updateBadge = async () => {
-    const due = (await getReviewQueue()).length;
-    await browser.action.setBadgeText({ text: due ? String(due) : '' });
-    await browser.action.setBadgeBackgroundColor({ color: '#5b5bd6' });
+    const [cards, settings] = await Promise.all([getAllCards(), getSettings()]);
+    const due = buildQueue(cards, settings).length;
+    // In the evening, a streak that still needs today turns the badge orange.
+    const atRisk = isStreakAtRisk(computeStreak(cards));
+    await browser.action.setBadgeText({ text: due ? String(due) : atRisk ? '!' : '' });
+    await browser.action.setBadgeBackgroundColor({ color: atRisk ? '#e8590c' : '#5b5bd6' });
+    await browser.action.setTitle({
+      title: atRisk ? 'ReMCode: rate one problem today to keep your streak' : 'ReMCode',
+    });
   };
 
   const onLaunch = () => {

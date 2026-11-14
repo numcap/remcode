@@ -32,6 +32,7 @@ export function applySolve(
     createdAt: now,
     lastSeenAt: now,
   };
+  const srs = rate(base.srs, rating, retention, new Date(now));
   return {
     ...base,
     ...problem,
@@ -41,8 +42,8 @@ export function applySolve(
     difficulty: problem.difficulty !== 'Unknown' ? problem.difficulty : base.difficulty,
     notes,
     submissions: submission ? addSubmission(base.submissions, submission) : base.submissions,
-    srs: rate(base.srs, rating, retention, new Date(now)),
-    reviewLog: [...base.reviewLog, { at: now, rating, kind: 'solve' }],
+    srs,
+    reviewLog: [...base.reviewLog, { at: now, rating, kind: 'solve', due: srs.due }],
     lastSeenAt: now,
   };
 }
@@ -55,10 +56,11 @@ export function applyReview(
   recall = '',
 ): Card {
   const text = recall.trim();
+  const srs = rate(card.srs, rating, retention, new Date(now));
   return {
     ...card,
-    srs: rate(card.srs, rating, retention, new Date(now)),
-    reviewLog: [...card.reviewLog, { at: now, rating, kind: 'review', ...(text && { recall: text }) }],
+    srs,
+    reviewLog: [...card.reviewLog, { at: now, rating, kind: 'review', ...(text && { recall: text }), due: srs.due }],
     lastSeenAt: now,
   };
 }
