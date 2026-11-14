@@ -247,7 +247,7 @@ const logErrors = (page, label) => page.on('pageerror', (e) => console.log(`  [$
   await page.keyboard.press('2');
   await page.locator('.empty-state h1').waitFor();
   const done = (await page.locator('.empty-state').innerText()).replace(/\n+/g, ' | ');
-  check('Review: rating with "2" finishes the session', /Session complete/.test(done) && /Hard\s*\|?\s*1/.test(done), done);
+  check('Review: rating with "2" finishes the session', /Session complete|Queue cleared/.test(done) && /Hard\s*\|?\s*1/.test(done), done);
 
   const log = await page.evaluate(async () => {
     const api = globalThis.browser ?? globalThis.chrome;

@@ -6,11 +6,13 @@ import { RatingButtons } from '@/components/RatingButtons';
 import { PageSkeleton } from '@/components/Skeleton';
 import { SubmissionView } from '@/components/SubmissionView';
 import { recordReview } from '@/lib/capture';
-import { daysSinceLabel, dueLabel, RATING_LABELS, sourceName } from '@/lib/format';
+import { daysSinceLabel, dueLabel, RATING_LABELS, sourceName, startOfDay } from '@/lib/format';
 import { previewIntervals } from '@/lib/srs';
 import { buildQueue, getAllCards, getSettings, isDue } from '@/lib/storage';
+import { computeStreak, isPerfectDay } from '@/lib/streak';
 import { RATINGS, type Card, type Rating, type Settings } from '@/lib/types';
 import { cardHref, useCards } from './hooks';
+import { MilestoneCelebration, StreakReward } from './Streak';
 
 const AHEAD_BATCH = 10;
 
@@ -274,10 +276,21 @@ function SessionEnd({
   const stillDue = buildQueue(deck, settings, now).length;
   const capped = stillDue === 0 && deck.some((c) => isDue(c, now));
   const upcoming = deck.filter((c) => !isDue(c, now)).sort((a, b) => a.srs.due - b.srs.due);
+  const streak = computeStreak(deck, now);
+  const perfect = isPerfectDay(deck, startOfDay(now), settings.maxReviewsPerDay);
+  const title = !reviewed ? 'Nothing due right now' : perfect && mode === 'due' ? 'Queue cleared' : 'Session complete';
 
   return (
     <div className="empty-state">
-      <h1>{reviewed ? 'Session complete' : 'Nothing due right now'}</h1>
+      <MilestoneCelebration streak={streak} />
+      <h1>{title}</h1>
+      {reviewed > 0 && <StreakReward streak={streak} perfect={perfect} />}
+      {!reviewed && streak.today === 'at-risk' && (
+        <p className="streak-nudge">
+          🔥 Your {streak.current}-day streak needs one problem today. Review ahead, or solve something new on LeetCode
+          or NeetCode.
+        </p>
+      )}
       {reviewed > 0 && (
         <>
           <p>

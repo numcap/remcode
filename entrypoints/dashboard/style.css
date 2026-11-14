@@ -802,7 +802,353 @@ details.panel[open] > summary {
   .brand-text {
     display: none;
   }
+  .topnav {
+    gap: 8px;
+  }
+  .nav-links {
+    gap: 2px;
+  }
   .nav-links a {
     padding: 6px 7px;
+  }
+  .nav-links a.nav-add {
+    margin-left: 2px;
+  }
+  .nav-links a.nav-add {
+    white-space: pre;
+  }
+  /* The flame stands in for the label when space is tight. */
+  .nav-stats.has-streak .nav-stats-label {
+    display: none;
+  }
+  .nav-stats.has-streak .nav-streak {
+    margin-left: 0;
+  }
+}
+
+/* Streaks */
+.nav-streak {
+  margin-left: 4px;
+  white-space: nowrap;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--mc-flame);
+  font-variant-numeric: tabular-nums;
+}
+.nav-streak.is-at-risk {
+  filter: grayscale(0.7);
+  opacity: 0.75;
+}
+.streak-reward {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin: 20px auto 8px;
+  padding: 20px 20px 16px;
+  max-width: 340px;
+  border-radius: 16px;
+  border: 1px solid color-mix(in srgb, var(--mc-flame) 30%, var(--mc-border));
+  background: radial-gradient(
+      circle at 50% 0%,
+      color-mix(in srgb, var(--mc-flame) 16%, transparent),
+      transparent 70%
+    ),
+    var(--mc-surface);
+}
+.streak-reward-perfect {
+  border-color: color-mix(in srgb, var(--mc-gold) 60%, var(--mc-border));
+  background: radial-gradient(circle at 50% 0%, color-mix(in srgb, var(--mc-gold) 22%, transparent), transparent 70%),
+    var(--mc-surface);
+}
+.streak-reward-flame {
+  font-size: 52px;
+  line-height: 1;
+  animation: flame-pop 700ms cubic-bezier(0.34, 1.56, 0.64, 1) both, flame-flicker 2.4s ease-in-out 700ms infinite;
+  transform-origin: 50% 90%;
+}
+.streak-reward-count {
+  margin-top: 4px;
+  font-size: 44px;
+  font-weight: 800;
+  line-height: 1;
+  color: var(--mc-flame);
+  font-variant-numeric: tabular-nums;
+  animation: count-rise 500ms ease-out 200ms both;
+}
+.streak-reward-perfect .streak-reward-count {
+  color: var(--mc-gold);
+}
+.streak-reward-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 2px;
+  color: var(--mc-muted);
+  font-weight: 600;
+}
+.perfect-chip {
+  padding: 1px 8px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--mc-gold) 20%, transparent);
+  color: var(--mc-text);
+  font-size: 12px;
+}
+.streak-progress {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  margin-top: 14px;
+  font-size: 12px;
+  color: var(--mc-muted);
+  white-space: nowrap;
+}
+.streak-progress-track {
+  flex: 1;
+  height: 6px;
+  border-radius: 999px;
+  background: var(--mc-surface-2);
+  overflow: hidden;
+}
+.streak-progress-fill {
+  height: 100%;
+  border-radius: inherit;
+  background: var(--mc-flame);
+  animation: grow 900ms ease-out 300ms both;
+  transform-origin: left;
+}
+.streak-reward-sub {
+  margin-top: 10px;
+  font-size: 12px;
+  color: var(--mc-muted);
+}
+.streak-nudge {
+  padding: 10px 14px;
+  border-radius: var(--mc-radius);
+  background: color-mix(in srgb, var(--mc-flame) 10%, var(--mc-surface));
+}
+.milestone-banner {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 0 auto 20px;
+  padding: 12px 14px;
+  border-radius: var(--mc-radius);
+  border: 1px solid color-mix(in srgb, var(--mc-gold) 60%, var(--mc-border));
+  background: color-mix(in srgb, var(--mc-gold) 14%, var(--mc-surface));
+  text-align: left;
+  animation: count-rise 500ms ease-out both;
+}
+.milestone-banner > div {
+  flex: 1;
+  font-size: 14px;
+}
+.milestone-trophy {
+  font-size: 30px;
+  animation: flame-pop 700ms cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+@keyframes flame-pop {
+  from {
+    transform: scale(0.2);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+@keyframes flame-flicker {
+  0%,
+  100% {
+    transform: scale(1) rotate(0deg);
+  }
+  50% {
+    transform: scale(1.06) rotate(-2deg);
+  }
+}
+@keyframes count-rise {
+  from {
+    transform: translateY(8px);
+    opacity: 0;
+  }
+  to {
+    transform: none;
+    opacity: 1;
+  }
+}
+@keyframes grow {
+  from {
+    transform: scaleX(0);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .streak-reward-flame,
+  .streak-reward-count,
+  .streak-progress-fill,
+  .milestone-banner,
+  .milestone-trophy {
+    animation: none;
+  }
+}
+
+/* Stats page */
+.stats-hero {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 18px;
+}
+.stats-hero-flame {
+  font-size: 48px;
+  line-height: 1;
+}
+.stats-hero-flame.is-out {
+  filter: grayscale(1);
+  opacity: 0.4;
+}
+.stats-hero-count {
+  font-size: 32px;
+  font-weight: 800;
+  line-height: 1.1;
+  color: var(--mc-flame);
+  font-variant-numeric: tabular-nums;
+}
+.stats-hero-count span {
+  font-size: 18px;
+  font-weight: 650;
+  color: var(--mc-text);
+}
+.stat-ice {
+  color: var(--mc-ice);
+}
+.stat-gold {
+  color: var(--mc-gold);
+}
+.heatmap-scroll {
+  overflow-x: auto;
+  padding-bottom: 4px;
+}
+.heatmap {
+  --cell: 12px;
+  --gap: 3px;
+  width: max-content;
+}
+.heatmap-months,
+.heatmap-grid {
+  display: grid;
+  grid-template-columns: repeat(var(--weeks), var(--cell));
+  gap: var(--gap);
+}
+.heatmap-months {
+  margin-bottom: 4px;
+  font-size: 11px;
+  color: var(--mc-muted);
+  height: 14px;
+}
+.heatmap-months span {
+  white-space: nowrap;
+}
+.heatmap-grid {
+  grid-template-rows: repeat(7, var(--cell));
+  grid-auto-flow: column;
+}
+.hm-cell {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border-radius: 3px;
+  background: var(--mc-surface-2);
+}
+.hm-1 {
+  background: color-mix(in srgb, var(--mc-accent) 30%, var(--mc-surface-2));
+}
+.hm-2 {
+  background: color-mix(in srgb, var(--mc-accent) 55%, var(--mc-surface-2));
+}
+.hm-3 {
+  background: color-mix(in srgb, var(--mc-accent) 78%, var(--mc-surface-2));
+}
+.hm-4 {
+  background: var(--mc-accent);
+}
+.hm-cell.hm-perfect {
+  background: var(--mc-gold);
+}
+.hm-cell.hm-frozen {
+  background: color-mix(in srgb, var(--mc-ice) 45%, var(--mc-surface-2));
+}
+.hm-cell.hm-future {
+  visibility: hidden;
+}
+.heatmap-legend {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px;
+  margin-top: 10px;
+  font-size: 11px;
+  color: var(--mc-muted);
+}
+.heatmap-legend > span:not(.hm-cell) {
+  margin: 0 4px;
+}
+.milestones {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.milestones li {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 12px 8px;
+  border-radius: var(--mc-radius);
+  border: 1px dashed var(--mc-border);
+  font-size: 13px;
+  text-align: center;
+}
+.milestones li.is-earned {
+  border-style: solid;
+  border-color: color-mix(in srgb, var(--mc-gold) 60%, var(--mc-border));
+  background: color-mix(in srgb, var(--mc-gold) 10%, transparent);
+}
+.milestone-medal {
+  font-size: 24px;
+}
+.milestones li:not(.is-earned) .milestone-medal {
+  opacity: 0.5;
+}
+.stats-help ul {
+  margin: 0;
+  padding-left: 18px;
+  color: var(--mc-muted);
+  font-size: 14px;
+}
+.stats-help li + li {
+  margin-top: 4px;
+}
+@media (max-width: 720px) {
+  .milestones {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+/* Small phones: the + alone is the Add button. */
+@media (max-width: 400px) {
+  .nav-add-text {
+    display: none;
+  }
+}
+@media (max-width: 359px) {
+  .nav-links a {
+    padding: 6px 4px;
+    font-size: 13px;
+  }
+  .nav-links a.nav-add {
+    padding: 6px 9px;
   }
 }

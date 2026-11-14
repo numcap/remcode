@@ -28,7 +28,7 @@ describe('capture', () => {
     expect(card.id).toBe('leetcode:two-sum');
     expect(card.notes).toBe('hash map');
     expect(card.submissions).toHaveLength(1);
-    expect(card.reviewLog).toEqual([{ at: t0, rating: 3, kind: 'solve' }]);
+    expect(card.reviewLog).toEqual([{ at: t0, rating: 3, kind: 'solve', due: card.srs.due }]);
     expect(card.createdAt).toBe(t0);
     expect(card.srs.due).toBeGreaterThan(t0);
     expect(await getCard(card.id)).toEqual(card);
@@ -73,16 +73,16 @@ describe('capture', () => {
     await updateCard(card.id, (c) => ({ ...c, notes: 'edited elsewhere' }));
     const reviewed = await recordReview(card.id, 2, card.srs.due);
     expect(reviewed?.notes).toBe('edited elsewhere');
-    expect(reviewed?.reviewLog.at(-1)).toEqual({ at: card.srs.due, rating: 2, kind: 'review' });
+    expect(reviewed?.reviewLog.at(-1)).toEqual({ at: card.srs.due, rating: 2, kind: 'review', due: reviewed?.srs.due });
     expect(reviewed?.lastSeenAt).toBe(card.srs.due);
   });
 
   it('stores trimmed recall text on review entries and omits it when blank', async () => {
     const card = await upsertFromSolve({ problem, rating: 3, notes: '' }, t0);
     const first = await recordReview(card.id, 3, t0 + 1, '  two pointers?\n');
-    expect(first?.reviewLog.at(-1)).toEqual({ at: t0 + 1, rating: 3, kind: 'review', recall: 'two pointers?' });
+    expect(first?.reviewLog.at(-1)).toEqual({ at: t0 + 1, rating: 3, kind: 'review', recall: 'two pointers?', due: first?.srs.due });
     const second = await recordReview(card.id, 4, t0 + 2, '   ');
-    expect(second?.reviewLog.at(-1)).toEqual({ at: t0 + 2, rating: 4, kind: 'review' });
+    expect(second?.reviewLog.at(-1)).toEqual({ at: t0 + 2, rating: 4, kind: 'review', due: second?.srs.due });
   });
 
   it('applyReview is pure', async () => {

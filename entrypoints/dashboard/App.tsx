@@ -3,12 +3,14 @@ import { browser } from 'wxt/browser';
 import { Logo } from '@/components/Logo';
 import { SiteAccessBanner } from '@/components/SiteAccessBanner';
 import { buildQueue } from '@/lib/storage';
+import { computeStreak } from '@/lib/streak';
 import { AddProblem } from './AddProblem';
 import { CardDetail } from './CardDetail';
 import { useCards, useNow, useRoute, useSettings } from './hooks';
 import { Library } from './Library';
 import { Review } from './Review';
 import { SettingsPage } from './SettingsPage';
+import { Stats } from './Stats';
 
 export function App() {
   const route = useRoute();
@@ -16,6 +18,7 @@ export function App() {
   const [settings] = useSettings();
   const now = useNow();
   const dueCount = cards && settings ? buildQueue(cards, settings, now).length : 0;
+  const streak = cards ? computeStreak(cards, now) : null;
 
   useEffect(() => {
     document.title = dueCount ? `(${dueCount}) ReMCode` : 'ReMCode';
@@ -45,6 +48,17 @@ export function App() {
           >
             Library
           </a>
+          <a
+            href="#/stats"
+            className={streak?.current ? 'nav-stats has-streak' : 'nav-stats'}
+            aria-current={route.name === 'stats' ? 'page' : undefined}
+            title={streak?.current ? `${streak.current}-day streak` : 'Stats'}
+          >
+            <span className="nav-stats-label">Stats</span>
+            {!!streak?.current && (
+              <span className={`nav-streak${streak.today === 'at-risk' ? ' is-at-risk' : ''}`}>🔥{streak.current}</span>
+            )}
+          </a>
           <a href="#/settings" aria-current={route.name === 'settings' ? 'page' : undefined}>
             Settings
           </a>
@@ -53,8 +67,9 @@ export function App() {
             className="mc-btn mc-btn-primary nav-add"
             aria-current={route.name === 'add' ? 'page' : undefined}
             title="Add a problem"
+            aria-label="Add a problem"
           >
-            + Add
+            +<span className="nav-add-text"> Add</span>
           </a>
         </div>
       </nav>
@@ -65,6 +80,7 @@ export function App() {
         {route.name === 'card' && route.param && <CardDetail id={route.param} />}
         {route.name === 'settings' && <SettingsPage />}
         {route.name === 'add' && <AddProblem />}
+        {route.name === 'stats' && <Stats />}
       </main>
     </div>
   );

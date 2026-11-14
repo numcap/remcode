@@ -5,6 +5,7 @@ import { Logo } from '@/components/Logo';
 import { SiteAccessBanner } from '@/components/SiteAccessBanner';
 import { daysSinceLabel, dueLabel, sourceName } from '@/lib/format';
 import { buildQueue, getAllCards, getSettings, isDue } from '@/lib/storage';
+import { computeStreak, type StreakInfo } from '@/lib/streak';
 import type { Card } from '@/lib/types';
 
 const RECENT_COUNT = 5;
@@ -59,6 +60,8 @@ export function Popup() {
         </div>
       </section>
 
+      {cards.length > 0 && <StreakRow streak={computeStreak(cards)} hasDue={queue.length > 0} />}
+
       {recent.length > 0 ? (
         <section>
           <h2>Recently seen</h2>
@@ -92,5 +95,34 @@ export function Popup() {
         </button>
       </footer>
     </div>
+  );
+}
+
+function StreakRow({ streak, hasDue }: { streak: StreakInfo; hasDue: boolean }) {
+  const { current, freezes, today } = streak;
+  let message: string;
+  if (today === 'done') message = `day streak · today counts`;
+  else if (today === 'at-risk')
+    message = hasDue ? 'Do 1 review today to keep it' : 'Solve or review 1 problem today to keep it';
+  else message = 'Rate one problem today to start a streak';
+
+  return (
+    <button
+      type="button"
+      className={`streak-row streak-${today}`}
+      onClick={() => openDashboard('#/stats')}
+      title="Open stats"
+    >
+      <span className="streak-flame" aria-hidden="true">
+        {current > 0 ? '🔥' : '·'}
+      </span>
+      {current > 0 && <span className="streak-count">{current}</span>}
+      <span className="streak-message">{message}</span>
+      {freezes > 0 && (
+        <span className="streak-freezes" title={`${freezes} streak freeze${freezes === 1 ? '' : 's'}: covers a missed day`}>
+          🧊 {freezes}
+        </span>
+      )}
+    </button>
   );
 }

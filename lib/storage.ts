@@ -8,6 +8,8 @@ const SETTINGS_KEY = 'settings';
 const DELETED_KEY = 'deleted';
 const GITHUB_KEY = 'github';
 const SYNC_STATUS_KEY = 'syncStatus';
+// Per browser, not synced: at worst another browser celebrates the same milestone once more.
+const MILESTONE_KEY = 'celebratedMilestone';
 
 export const DEFAULT_SETTINGS: Settings = {
   retention: 0.9,
@@ -96,6 +98,16 @@ export async function getSettings(): Promise<Settings> {
   };
 }
 
+/** The highest streak milestone already celebrated in this browser. */
+export async function getCelebratedMilestone(): Promise<number> {
+  const got = await browser.storage.local.get(MILESTONE_KEY);
+  return typeof got[MILESTONE_KEY] === 'number' ? got[MILESTONE_KEY] : 0;
+}
+
+export async function setCelebratedMilestone(value: number): Promise<void> {
+  await browser.storage.local.set({ [MILESTONE_KEY]: value });
+}
+
 export async function saveSettings(settings: Settings): Promise<void> {
   await browser.storage.local.set({ [SETTINGS_KEY]: { ...settings, updatedAt: Date.now() } });
 }
@@ -122,10 +134,6 @@ export function buildQueue(cards: Card[], settings: Settings, now = Date.now()):
   return due.slice(0, remaining);
 }
 
-export async function getReviewQueue(now = Date.now()): Promise<Card[]> {
-  const [cards, settings] = await Promise.all([getAllCards(), getSettings()]);
-  return buildQueue(cards, settings, now);
-}
 
 export function onCardsChanged(callback: () => void): () => void {
   const listener = (changes: Record<string, unknown>, area: string) => {

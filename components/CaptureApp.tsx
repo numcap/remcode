@@ -4,11 +4,20 @@ import { upsertFromSolve } from '@/lib/capture';
 import { daysSinceLabel, dueLabel, langName } from '@/lib/format';
 import { problemSlugFromPath, type AcceptedEvent, type HookEvent } from '@/lib/hook';
 import { previewIntervals } from '@/lib/srs';
-import { cardId, getCard, getSettings } from '@/lib/storage';
+import {
+  cardId,
+  getAllCards,
+  getCard,
+  getCelebratedMilestone,
+  getSettings,
+  setCelebratedMilestone,
+} from '@/lib/storage';
+import { computeStreak, newMilestone } from '@/lib/streak';
 import type { CaptureSite, Card, Problem, Rating, Submission } from '@/lib/types';
 import { DifficultyPill } from './DifficultyPill';
 import { Logo } from './Logo';
 import { RatingButtons } from './RatingButtons';
+import { StreakMoment } from './StreakMoment';
 
 export interface SiteAdapter {
   site: CaptureSite;
@@ -44,7 +53,15 @@ type View =
   | { kind: 'closed' }
   | { kind: 'loading'; trigger: Trigger }
   | { kind: 'draft'; draft: Draft; saving: boolean; error?: string }
-  | { kind: 'saved'; card: Card };
+  | { kind: 'streak'; card: Card; streak: StreakGain }
+  | { kind: 'saved'; card: Card; streak: number };
+
+/** Today's first solve extended (or started) the streak from `from` to `to`. */
+export interface StreakGain {
+  from: number;
+  to: number;
+  milestone?: number;
+}
 
 export function CaptureApp({ adapter, onLocationChange, subscribeAccepted }: Props) {
   const [slug, setSlug] = useState(() => problemSlugFromPath(location.pathname));
@@ -132,6 +149,7 @@ export function CaptureApp({ adapter, onLocationChange, subscribeAccepted }: Pro
     setView({ ...view, saving: true, error: undefined });
     try {
       const code = draft.code.trimEnd();
+      const before = computeStreak(await getAllCards());
       const card = await upsertFromSolve({
         problem: draft.problem,
         submission: code.trim()
@@ -141,7 +159,14 @@ export function CaptureApp({ adapter, onLocationChange, subscribeAccepted }: Pro
         notes: draft.notes.trim(),
       });
       setSavedHere(card);
-      setView({ kind: 'saved', card });
+      const after = computeStreak(await getAllCards());
+      if (before.today !== 'done' && after.today === 'done') {
+        const milestone = newMilestone(after.current, await getCelebratedMilestone());
+        if (milestone) await setCelebratedMilestone(milestone);
+        setView({ kind: 'streak', card, streak: { from: before.current, to: after.current, milestone } });
+      } else {
+        setView({ kind: 'saved', card, streak: after.current });
+      }
     } catch (err) {
       setView({ ...view, saving: false, error: err instanceof Error ? err.message : String(err) });
     }
@@ -187,6 +212,13 @@ export function CaptureApp({ adapter, onLocationChange, subscribeAccepted }: Pro
         </button>
       )}
 
+      {view.kind === 'streak' && (
+        <StreakMoment
+          gain={view.streak}
+          onDone={() => setView({ kind: 'saved', card: view.card, streak: view.streak.to })}
+        />
+      )}
+
       {(view.kind === 'loading' || view.kind === 'draft') && (
         <div className="mc-backdrop">
           <div
@@ -220,6 +252,11 @@ export function CaptureApp({ adapter, onLocationChange, subscribeAccepted }: Pro
             <strong>Saved {view.card.title}</strong>
             <span>Next review {dueLabel(view.card.srs.due)}</span>
           </div>
+          {view.streak > 0 && (
+            <span className="mc-toast-streak" title={`${view.streak}-day streak`}>
+              🔥 {view.streak}
+            </span>
+          )}
           <button type="button" className="mc-btn" onClick={() => openDashboard(`#/card/${encodeURIComponent(view.card.id)}`)}>
             Open
           </button>

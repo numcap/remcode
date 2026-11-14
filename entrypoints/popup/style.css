@@ -123,3 +123,52 @@ footer {
 footer .mc-btn {
   flex: 1;
 }
+
+.streak-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  margin-top: 8px;
+  padding: 8px 10px;
+  border: 1px solid var(--mc-border);
+  border-radius: var(--mc-radius);
+  background: var(--mc-surface);
+  color: var(--mc-text);
+  font: 13px var(--mc-font);
+  text-align: left;
+  cursor: pointer;
+}
+.streak-row:hover {
+  background: var(--mc-surface-2);
+}
+.streak-row.streak-at-risk {
+  border-color: color-mix(in srgb, var(--mc-flame) 55%, var(--mc-border));
+  background: color-mix(in srgb, var(--mc-flame) 8%, var(--mc-surface));
+}
+.streak-row.streak-idle .streak-flame {
+  color: var(--mc-muted);
+}
+.streak-row.streak-at-risk .streak-flame {
+  filter: grayscale(0.6);
+  opacity: 0.75;
+}
+.streak-count {
+  font-weight: 750;
+  font-variant-numeric: tabular-nums;
+  color: var(--mc-flame);
+}
+.streak-message {
+  flex: 1;
+  min-width: 0;
+  color: var(--mc-muted);
+}
+.streak-done .streak-message {
+  color: var(--mc-text);
+}
+.streak-freezes {
+  font-size: 12px;
+  color: var(--mc-ice);
+  font-weight: 600;
+  white-space: nowrap;
+}
